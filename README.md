@@ -4,7 +4,7 @@
 # Vidhi Kaushal 25/SWE/19
 # Aakash 25/SWE/21
 
-# OnboardIQ â€” Local KYC MVP
+# OnboardIQ” Local KYC MVP
 
 A runnable, local-only MVP for synthetic KYC onboarding with **on-device AI document reading (OCR + optional local LLM)**, self-registration, deterministic rule evaluation, role-based officer review, maker-checker approval, dashboard and audit export. It uses the supplied Case 02 data pack and rule engine. No cloud service or Docker is required.
 
