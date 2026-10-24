@@ -1,4 +1,0 @@
-# Emergency local profile: filesystem storage and in-process job publisher are added in Phase 4.
-app:
-  storage: fs
-  queue: direct

@@ -11,3 +11,4 @@ local/logs/*.pid
 uploads/*
 !uploads/.gitkeep
 output/extraction_eval.csv
+output/test_decisions.csv
