@@ -1,0 +1,1 @@
+body { margin: 0; } .hero { padding: clamp(24px, 5vw, 56px); background: linear-gradient(135deg,#fff 0%,#eaf1fb 100%); border: 1px solid #e1e8f2; } .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px; margin:24px 0; } .tile { padding:24px; border:1px solid #e1e8f2; min-height:160px; } .tile p { line-height:1.65; margin-top:10px; } 

@@ -1,0 +1,13 @@
+.venv/
+node_modules/
+frontend/dist/
+__pycache__/
+*.py[cod]
+local/onboardiq-local.sqlite3*
+uploads/*.txt
+local/logs/*.log
+local/logs/*.pid
+.env
+uploads/*
+!uploads/.gitkeep
+output/extraction_eval.csv
