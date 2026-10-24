@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/onboardiq_test}
+  cloud:
+    aws:
+      s3:
+        endpoint: http://localhost:8333
+      sqs:
+        endpoint: http://localhost:9324
+app:
+  extraction:
+    provider: mock

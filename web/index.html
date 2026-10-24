@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OnboardIQ · Local KYC</title>
+<style>
+:root{
+  --ink:#14203a;--ink2:#46536b;--mute:#6f7b91;--line:#e3e8f0;--bg:#f3f5f9;--card:#fff;
+  --navy:#12203a;--blue:#2457c5;--blue-soft:#ecf2ff;--green:#16774a;--green-soft:#e3f6ec;
+  --amber:#8a5a00;--amber-soft:#fff3d6;--red:#a3202f;--red-soft:#ffecec;--violet:#5a3fc0;--violet-soft:#f0ecff;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)
+}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}
+a{color:var(--blue)}
+h1,h2,h3{letter-spacing:-.3px;margin:0}h2{font-size:21px}h3{font-size:15px}
+.top{background:var(--navy);color:#fff;padding:14px max(20px,calc((100vw - 1280px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:20}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.4px}.brand small{display:block;font-size:10px;letter-spacing:1.4px;color:#9fb0cf;font-weight:600;margin-top:2px}
+.top .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 9px;border-radius:99px;background:#ffffff14;color:#dbe4f5;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:#7c8aa5;display:inline-block}.dot.on{background:#3ddc84}.dot.warn{background:#ffbf3c}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 20px 40px}
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px}
+.side{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;align-self:start;position:sticky;top:78px}
+.side .group{font-size:10.5px;letter-spacing:1.2px;color:var(--mute);font-weight:800;margin:12px 8px 6px}
+.side button{display:flex;width:100%;justify-content:space-between;align-items:center;text-align:left;background:none;color:var(--ink2);border:1px solid transparent;font-weight:600;padding:9px 10px}
+.side button.active{background:var(--blue-soft);color:var(--blue);border-color:#d3e0fb}
+.side .count:empty{display:none}.side .count{font-size:11px;background:#eef1f6;color:var(--ink2);border-radius:99px;padding:2px 7px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.muted{color:var(--mute)}.small{font-size:12.5px}
+button,.btn{border:0;border-radius:9px;padding:9px 14px;font:inherit;font-weight:650;cursor:pointer;background:var(--blue);color:#fff;font-size:14px}
+button.secondary{background:#edf1f7;color:#2f3d57}button.ghost{background:none;color:var(--blue);padding:6px 8px}
+button.danger{background:var(--red)}button.ok{background:var(--green)}button.warn{background:#b06d00}
+button.sm{padding:6px 10px;font-size:12.5px}button:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid #d3dae6;border-radius:8px;font:inherit;font-size:14px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid #bcd0fa;border-color:#8eacf0}
+label{display:block;font-size:12px;font-weight:700;color:#55627a;margin:10px 0 5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}.full{grid-column:1/-1}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.between{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}.stat b{font-size:22px;display:block}.stat span{font-size:12px;color:var(--mute)}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:10px 9px;border-bottom:1px solid #edf0f5;vertical-align:top}
+th{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:#76829a;font-weight:800}
+tr.click{cursor:pointer}tr.click:hover td{background:#f8faff}
+.tablewrap{overflow-x:auto}
+.pill{display:inline-block;border-radius:99px;padding:3px 9px;font-size:11px;font-weight:800;background:#eef2f7;color:#3a475f;white-space:nowrap}
+.pill.APPROVE,.pill.APPROVED,.pill.LOW,.pill.match{background:var(--green-soft);color:var(--green)}
+.pill.REJECT,.pill.REJECTED,.pill.HIGH,.pill.diff{background:var(--red-soft);color:var(--red)}
+.pill.REVIEW,.pill.IN_REVIEW,.pill.MEDIUM,.pill.warn{background:var(--amber-soft);color:var(--amber)}
+.pill.PENDING_CHECKER{background:var(--violet-soft);color:var(--violet)}.pill.SUBMITTED{background:var(--blue-soft);color:var(--blue)}
+.pill.RESUBMISSION_REQUESTED{background:#ffe9d6;color:#9a4a00}
+.msg{padding:10px 12px;border-radius:9px;font-size:13px;margin:10px 0;background:var(--blue-soft);color:#24498f}
+.msg.err{background:var(--red-soft);color:var(--red)}.msg.ok{background:var(--green-soft);color:var(--green)}.msg.warn{background:var(--amber-soft);color:var(--amber)}
+.hidden{display:none!important}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f6f8fb;border:1px solid #edf0f5;padding:12px;border-radius:8px;max-height:420px;overflow:auto}
+/* auth */
+.auth{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;max-width:1040px;margin:30px auto}
+.hero{background:linear-gradient(135deg,#162a4d,#24457f);color:#fff;border-radius:18px;padding:34px}
+.hero h1{font-size:34px;line-height:1.1;margin:10px 0 12px}.hero p{color:#c9d5ec;line-height:1.55}
+.hero ul{padding-left:18px;color:#dfe7f6;line-height:1.9;font-size:14px}
+.tabs{display:flex;gap:4px;background:#eef1f6;border-radius:10px;padding:4px;margin-bottom:6px}
+.tabs button{flex:1;background:none;color:var(--ink2)}.tabs button.active{background:#fff;color:var(--ink);box-shadow:0 1px 3px #0001}
+.demo{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.demo button{font-size:12px}
+/* upload */
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.slot{border:1.5px dashed #c5d0e2;border-radius:12px;padding:14px;background:#fafbfe;display:flex;flex-direction:column;gap:8px;min-height:200px;transition:.15s}
+.slot.drag{border-color:var(--blue);background:var(--blue-soft)}
+.slot.done{border-style:solid;border-color:#bfe3cf;background:#fbfffc}
+.slot .t{font-weight:750;font-size:14px}.slot .drop{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;color:var(--mute);font-size:12.5px;cursor:pointer;border-radius:8px;padding:10px}
+.slot .drop:hover{background:#f1f5fc}
+.thumb{width:100%;height:110px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:#fff}
+.thumb.txt{font-family:ui-monospace,monospace;font-size:9px;overflow:hidden;padding:6px;white-space:pre;color:#55627a}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12.5px}.kv span{color:var(--mute)}.kv b{font-weight:650;overflow-wrap:anywhere}
+.spinner{width:16px;height:16px;border:2.5px solid #c9d6f2;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* case workbench */
+.case{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px}
+.doctabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.doctabs button{background:#eef1f6;color:var(--ink2)}.doctabs button.active{background:var(--navy);color:#fff}
+.viewer{border:1px solid var(--line);border-radius:10px;background:#f7f8fb;min-height:300px;max-height:520px;overflow:auto;display:flex;align-items:flex-start;justify-content:center}
+.viewer img{max-width:100%;display:block}.viewer iframe{width:100%;height:520px;border:0}.viewer pre{margin:0;padding:14px;font-size:12px;white-space:pre-wrap;width:100%}
+.conf{display:inline-block;width:60px;height:6px;border-radius:9px;background:#e8ecf3;vertical-align:middle;margin-right:6px;overflow:hidden}
+.conf i{display:block;height:100%;background:var(--green)}.conf i.low{background:#d98a00}.conf i.bad{background:var(--red)}
+.src{font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--violet);background:var(--violet-soft);border-radius:5px;padding:1px 5px}
+.note{font-size:11.5px;color:var(--amber)}
+.reason{border-left:3px solid #d0d7e4;padding:6px 10px;margin:6px 0;font-size:13px;background:#fafbfd;border-radius:0 8px 8px 0}
+.reason.hard{border-color:var(--red)}.reason.soft{border-color:#d98a00}
+.steps{display:flex;gap:0;margin:14px 0 4px;flex-wrap:wrap}
+.step{flex:1;min-width:100px;text-align:center;font-size:11.5px;color:var(--mute);position:relative;padding-top:20px}
+.step:before{content:"";position:absolute;top:6px;left:50%;width:12px;height:12px;border-radius:50%;background:#d6dce7;transform:translateX(-50%);z-index:1}
+.step:after{content:"";position:absolute;top:11px;left:-50%;width:100%;height:2px;background:#d6dce7}.step:first-child:after{display:none}
+.step.done{color:var(--ink)}.step.done:before,.step.done:after{background:var(--green)}.step.cur{color:var(--blue);font-weight:750}.step.cur:before{background:var(--blue);box-shadow:0 0 0 4px #dbe6fd}
+.modal-bg{position:fixed;inset:0;background:#0d1730aa;display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal{background:#fff;border-radius:14px;max-width:560px;width:100%;padding:20px;max-height:90vh;overflow:auto}
+.toast{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;flex-direction:column;gap:8px}
+.toast div{background:var(--navy);color:#fff;padding:11px 14px;border-radius:10px;font-size:13px;box-shadow:0 8px 24px #0003;max-width:380px}
+.toast div.err{background:var(--red)}
+.footer{text-align:center;color:#7c879b;font-size:12px;padding:10px 0 30px}
+@media(max-width:980px){.case{grid-template-columns:1fr}.slots{grid-template-columns:1fr}.auth{grid-template-columns:1fr}}
+@media(max-width:760px){.shell{grid-template-columns:1fr}.side{position:static;display:flex;overflow-x:auto;gap:4px}.side .group{display:none}.side button{white-space:nowrap;width:auto}.grid2{grid-template-columns:1fr}.top .chip.hide-m{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">OnboardIQ<small>LOCAL KYC · AI DOCUMENT READING · MAKER-CHECKER</small></div>
+  <div class="right">
+    <span id="aiChip" class="chip hide-m" title="Local OCR / AI status"><span class="dot"></span>Checking OCR…</span>
+    <span id="who" class="chip hidden"></span>
+    <button id="logout" class="secondary sm hidden">Sign out</button>
+  </div>
+</header>
+<main class="wrap">
+  <section id="authView" class="auth">
+    <div class="hero">
+      <div class="small" style="letter-spacing:1.3px;font-weight:800;color:#9fb6e6">SYNTHETIC DATA · RUNS ON THIS MACHINE</div>
+      <h1>Open an account by uploading your documents.</h1>
+      <p>OnboardIQ reads PAN, Aadhaar and address proofs with on-device OCR and an optional local AI model, then a deterministic rules engine and two human officers decide.</p>
+      <ul>
+        <li>Photos, scans and PDFs read locally: nothing leaves this computer</li>
+        <li>AI pre-fills your form; you confirm every value</li>
+        <li>KYC officer reviews, a separate compliance officer approves</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <div class="tabs"><button id="tabLogin" class="active" onclick="authTab('login')">Sign in</button><button id="tabReg" onclick="authTab('register')">Create account</button></div>
+      <form id="loginForm">
+        <label>Username</label><input id="lu" autocomplete="username" required>
+        <label>Password</label><input id="lp" type="password" autocomplete="current-password" required>
+        <div style="margin-top:14px"><button style="width:100%">Sign in</button></div>
+        <div class="small muted" style="margin-top:14px">Demo accounts (password <b>Passw0rd!</b>):</div>
+        <div class="demo">
+          <button type="button" class="secondary" onclick="demo('applicant1')">Applicant</button>
+          <button type="button" class="secondary" onclick="demo('officer2')">KYC officer</button>
+          <button type="button" class="secondary" onclick="demo('u2')">Compliance officer</button>
+          <button type="button" class="secondary" onclick="demo('u1')">KYC + Compliance</button>
+        </div>
+      </form>
+      <form id="regForm" class="hidden">
+        <label>Your full name</label><input name="display_name" required minlength="2" placeholder="As on your PAN card">
+        <label>Username</label><input name="username" required minlength="3" pattern="[A-Za-z0-9_.\-]+" placeholder="letters, digits, . _ -">
+        <label>Password</label><input name="password" type="password" required minlength="8" placeholder="8+ characters with a letter and a digit">
+        <label>Confirm password</label><input name="password2" type="password" required minlength="8">
+        <div style="margin-top:14px"><button style="width:100%">Create applicant account</button></div>
+        <p class="small muted">Officer accounts are provisioned by an administrator. Use synthetic data only.</p>
+      </form>
+      <div id="authMsg"></div>
+    </div>
+  </section>
+
+  <section id="appView" class="shell hidden">
+    <nav class="side" id="nav"></nav>
+    <section id="view" class="stack"></section>
+  </section>
+</main>
+<div class="footer">OnboardIQ local MVP · SQLite + local disk · OCR and AI run on-device · Synthetic identity data only</div>
+<div id="modalRoot"></div><div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const S={token:'',user:null,tab:'',ocr:null,caseDoc:{}};
+const DOC_LABEL={PAN_CARD:'PAN card',AADHAAR_CARD:'Aadhaar (masked)',ELECTRICITY_BILL:'Electricity bill',BANK_STATEMENT:'Bank statement',DRIVING_LICENCE:'Driving licence',OTHER:'Other / unknown'};
+const FIELD_LABEL={doc_type:'Document type',name:'Name',dob:'Date of birth',gender:'Gender',pan_number:'PAN',aadhaar_last4:'Aadhaar last 4',address:'Address',pincode:'PIN code',document_date:'Document date',valid_until:'Valid until'};
+const STATUS_LABEL={DRAFT:'Draft',SUBMITTED:'Submitted',IN_REVIEW:'Under KYC review',PENDING_CHECKER:'Compliance check',APPROVED:'Approved',REJECTED:'Rejected',RESUBMISSION_REQUESTED:'Action needed'};
+const REASONS={DOCUMENT_MISSING:['soft','A mandatory document (PAN, Aadhaar or address proof) was not identified.'],DOCUMENT_TYPE_MISMATCH:['soft','A document was classified as a different type than declared.'],LOW_EXTRACTION_CONFIDENCE:['soft','A required field is missing or below the 0.80 confidence threshold.'],AGE_BELOW_18:['hard','Applicant is under 18 on the application date.'],PAN_INVALID:['hard','Declared PAN fails format or is not an individual PAN (4th char P).'],PAN_MISMATCH:['hard','PAN on the card differs from the declared PAN.'],DOB_MISMATCH:['hard','Date of birth on PAN/Aadhaar differs from the declared DOB.'],AADHAAR_MISMATCH:['hard','Aadhaar last 4 digits differ from the declared value.'],NAME_MISMATCH:['hard','Name similarity below 0.75.'],SANCTIONS_MATCH:['hard','Name and DOB match a sanctions list entry.'],NAME_MISMATCH_MINOR:['soft','Name similarity between 0.75 and 0.90.'],DOCUMENT_EXPIRED:['soft','Driving licence used as address proof has expired.'],ADDRESS_PROOF_STALE:['soft','Address proof older than 90 days or future-dated.'],ADDRESS_MISMATCH:['soft','PIN code on the address proof differs from declared PIN.'],SANCTIONS_POSSIBLE_MATCH:['soft','Possible sanctions match needs manual screening.'],PEP_MATCH:['soft','Applicant matches a Politically Exposed Person entry.'],DUPLICATE_CUSTOMER:['soft','Declared PAN already belongs to an existing customer.']};
+let OCCUPATIONS=[['SALARIED_PRIVATE','Private sector salaried'],['SALARIED_GOVT','Government salaried'],['SELF_EMPLOYED','Self employed / business'],['PROFESSIONAL','Professional'],['STUDENT','Student'],['RETIRED','Retired'],['HOMEMAKER','Homemaker']];
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function pill(s,label){return `<span class="pill ${esc(s)}">${esc(label||STATUS_LABEL[s]||s)}</span>`}
+function roles(){return S.user?.roles||[]}const has=r=>roles().includes(r);
+const isOfficer=()=>has('KYC_OFFICER')||has('COMPLIANCE_OFFICER');
+function toast(m,err){let d=document.createElement('div');d.textContent=m;if(err)d.className='err';$('#toast').append(d);setTimeout(()=>d.remove(),err?6000:3500)}
+async function api(path,opt={}){
+  opt.headers={...(opt.headers||{}),...(S.token?{Authorization:'Bearer '+S.token}:{})};
+  if(opt.body&&!(opt.body instanceof FormData)){opt.headers['Content-Type']='application/json';opt.body=JSON.stringify(opt.body)}
+  const r=await fetch('/api/v1'+path,opt);let d;const ct=r.headers.get('content-type')||'';
+  d=ct.includes('json')?await r.json():await r.text();
+  if(r.status===401&&S.token){logout();throw Error('Session expired, please sign in again')}
+  if(!r.ok){let m=d?.detail;if(Array.isArray(m))m=m.map(x=>(x.loc||[]).slice(-1)[0]+': '+x.msg).join('; ');throw Error(m||r.statusText)}
+  return d}
+async function blobUrl(docId){const r=await fetch('/api/v1/documents/'+encodeURIComponent(docId)+'/content',{headers:{Authorization:'Bearer '+S.token}});if(!r.ok)throw Error('Could not load document');return URL.createObjectURL(await r.blob())}
+
+/* ---------- modal helpers ---------- */
+function modal(html){$('#modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`}
+function closeModal(){$('#modalRoot').innerHTML=''}
+function ask({title,text='',fields=[],ok='Confirm',cls=''}){return new Promise(res=>{
+  modal(`<h3>${esc(title)}</h3>${text?`<p class="muted small">${text}</p>`:''}<form id="askF">${fields.map(f=>`<label>${esc(f.label)}</label>${f.type==='textarea'?`<textarea name="${f.name}" rows="3" ${f.min?`minlength="${f.min}"`:''} required>${esc(f.value||'')}</textarea>`:`<input name="${f.name}" value="${esc(f.value||'')}" ${f.min?`minlength="${f.min}"`:''} required>`}`).join('')}<div class="row" style="margin-top:16px;justify-content:flex-end"><button type="button" class="secondary" id="askC">Cancel</button><button class="${cls}">${esc(ok)}</button></div></form>`);
+  $('#askC').onclick=()=>{closeModal();res(null)};
+  $('#askF').onsubmit=e=>{e.preventDefault();const v=Object.fromEntries(new FormData(e.target).entries());closeModal();res(v)};
+  setTimeout(()=>$('#askF [name]')?.focus(),30)})}
+
+/* ---------- auth ---------- */
+function authTab(t){$('#tabLogin').classList.toggle('active',t==='login');$('#tabReg').classList.toggle('active',t==='register');$('#loginForm').classList.toggle('hidden',t!=='login');$('#regForm').classList.toggle('hidden',t!=='register');$('#authMsg').innerHTML=''}
+function demo(u){$('#lu').value=u;$('#lp').value='Passw0rd!';$('#loginForm').requestSubmit()}
+function setSession(d){S.token=d.access_token;S.user=d.user;try{sessionStorage.setItem('oiq',JSON.stringify({t:S.token,u:S.user}))}catch{}showApp()}
+$('#loginForm').onsubmit=async e=>{e.preventDefault();try{setSession(await api('/auth/login',{method:'POST',body:{username:$('#lu').value.trim(),password:$('#lp').value}}))}catch(x){$('#authMsg').innerHTML=`<div class="msg err">${esc(x.message)}</div>`}};
+$('#regForm').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target).entries());if(f.password!==f.password2){$('#authMsg').innerHTML='<div class="msg err">Passwords do not match</div>';return}
+  try{setSession(await api('/auth/register',{method:'POST',body:{username:f.username.trim(),password:f.password,display_name:f.display_name.trim()}}));toast('Account created. Welcome!')}catch(x){$('#authMsg').innerHTML=`<div class="msg err">${esc(x.message)}</div>`}};
+function logout(){authTab('login');$('#lp').value='';S.token='';S.user=null;S.tab='';try{sessionStorage.removeItem('oiq')}catch{}$('#appView').classList.add('hidden');$('#authView').classList.remove('hidden');$('#logout').classList.add('hidden');$('#who').classList.add('hidden')}
+$('#logout').onclick=logout;
+
+/* ---------- shell ---------- */
+async function loadOcrStatus(){try{const s=await api('/ocr/status');S.ocr=s;const ai=s.ai||{};
+  $('#aiChip').innerHTML=`<span class="dot ${s.ocr_engine?'on':''}"></span>OCR: ${esc(s.ocr_engine||'not installed')} · <span class="dot ${ai.enabled?'on':'warn'}"></span>AI: ${ai.enabled?esc(ai.model+(ai.vision_model_ready?' + '+ai.vision_model:'')):'rules only'}`;
+  $('#aiChip').title=ai.enabled?'Local LLM via Ollama cross-checks every extraction':(ai.reason||'Local LLM not configured')}catch{}}
+function navItems(){const n=[];
+  if(has('APPLICANT'))n.push(['Applicant',[['my','My applications'],['new','New application']]]);
+  if(has('KYC_OFFICER'))n.push(['KYC officer',[['queue','Review queue'],['all','All applications']]]);
+  if(has('COMPLIANCE_OFFICER'))n.push(['Compliance officer',[['checker','Approval queue'],...(has('KYC_OFFICER')?[]:[['all','All applications']])]]);
+  if(isOfficer())n.push(['Oversight',[['dashboard','Dashboard'],...(has('COMPLIANCE_OFFICER')?[['audit','Audit log'],['config','Rules & reference']]:[])]]);
+  return n}
+function showApp(){$('#authView').classList.add('hidden');$('#appView').classList.remove('hidden');$('#logout').classList.remove('hidden');
+  $('#who').classList.remove('hidden');$('#who').textContent=(S.user.display_name||S.user.username)+' · '+roles().map(r=>r.replace('_OFFICER','').replace('_',' ')).join(' / ');
+  const items=navItems();$('#nav').innerHTML=items.map(([g,xs])=>`<div class="group">${g.toUpperCase()}</div>`+xs.map(([k,l])=>`<button data-tab="${k}" onclick="go('${k}')">${l}<span class="count" id="cnt-${k}"></span></button>`).join('')).join('');
+  loadOcrStatus();go(S.tab||items[0][1][0][0])}
+async function go(tab,arg){S.tab=tab;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  const v=$('#view');v.innerHTML='<div class="panel"><span class="spinner"></span> Loading…</div>';
+  try{await ({my:myApps,new:newApp,queue:reviewQueue,all:allApps,checker:checkerQueue,dashboard,audit:auditLog,config,case:openCase,detail:applicantDetail}[tab])(arg)}
+  catch(e){v.innerHTML=`<div class="panel"><div class="msg err">${esc(e.message)}</div></div>`}}
+
+/* ================= APPLICANT ================= */
+const STEPS=['DRAFT','SUBMITTED','IN_REVIEW','PENDING_CHECKER','DONE'];
+function stepper(status){const idx=status==='RESUBMISSION_REQUESTED'?0:['APPROVED','REJECTED'].includes(status)?4:STEPS.indexOf(status);
+  const labels=['Documents & details','Submitted','KYC review','Compliance approval',status==='REJECTED'?'Rejected':'Approved'];
+  return `<div class="steps">${labels.map((l,i)=>`<div class="step ${i<idx||(i===idx&&i===4)?'done':''} ${i===idx&&i!==4?'cur':''}">${l}</div>`).join('')}</div>`}
+async function myApps(){const rows=await api('/applications');$('#cnt-my').textContent=rows.length||'';
+  $('#view').innerHTML=`<div class="panel"><div class="between"><div><h2>My applications</h2><p class="muted small">Track your onboarding and respond to requests from the bank.</p></div><button onclick="go('new')">+ New application</button></div>
+  ${rows.length?`<div class="tablewrap"><table><thead><tr><th>Application</th><th>Name</th><th>Status</th><th>Created</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr class="click" onclick="go('detail','${esc(a.id)}')"><td><b>${esc(a.id)}</b></td><td>${esc(a.full_name)}</td><td>${pill(a.status)}</td><td class="muted">${esc((a.created_at||'').slice(0,10))}</td><td>${['DRAFT','RESUBMISSION_REQUESTED'].includes(a.status)?'<span class="pill warn">Continue</span>':''}</td></tr>`).join('')}</tbody></table></div>`
+  :`<div class="msg">No applications yet. Start one: upload your PAN, Aadhaar and an address proof and we will fill the form for you.</div>`}</div>`}
+
+/* document slot widget (used in new application + detail) */
+const SLOTS=[{key:'pan',title:'PAN card',types:['PAN_CARD']},{key:'aadhaar',title:'Aadhaar (masked)',types:['AADHAAR_CARD']},{key:'addr',title:'Address proof',types:['ELECTRICITY_BILL','BANK_STATEMENT','DRIVING_LICENCE']}];
+const NEW={files:{},scans:{}};
+function slotHtml(s){return `<div class="slot" id="slot-${s.key}">
+  <div class="between"><span class="t">${s.title}</span>${s.types.length>1?`<select id="type-${s.key}" style="width:auto;padding:4px 6px;font-size:12px">${s.types.map(t=>`<option value="${t}">${DOC_LABEL[t]}</option>`).join('')}</select>`:`<input type="hidden" id="type-${s.key}" value="${s.types[0]}">`}</div>
+  <div class="drop" id="drop-${s.key}" onclick="$('#file-${s.key}').click()"><div style="font-size:26px">⬆</div><b>Drop or click to upload</b><span>JPG, PNG, WEBP, PDF · max 10 MB</span></div>
+  <input type="file" id="file-${s.key}" class="hidden" accept="image/*,.pdf,.txt,.tif,.tiff">
+  <div id="res-${s.key}"></div></div>`}
+function wireSlot(s,onFile){const drop=$('#slot-'+s.key),inp=$('#file-'+s.key);
+  inp.onchange=()=>inp.files[0]&&onFile(s,inp.files[0]);
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag')}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag')}));
+  drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)onFile(s,f)})}
+function previewHtml(file,url){if(file.type.startsWith('image/'))return `<img class="thumb" src="${url}" alt="">`;if(file.type==='application/pdf')return `<div class="thumb txt">📄 ${esc(file.name)}\nPDF document</div>`;return `<div class="thumb txt">${esc(file.name)}</div>`}
+function fieldsKv(fields,showConf){return `<div class="kv">${Object.entries(fields).filter(([k])=>k!=='doc_type').map(([k,v])=>`<span>${FIELD_LABEL[k]||k}</span><b>${esc(v.value)}${showConf&&v.confidence<0.8?' <span class="note">(check)</span>':''}</b>`).join('')}</div>`}
+async function scanSlot(s,file){NEW.files[s.key]=file;const box=$('#res-'+s.key),url=URL.createObjectURL(file);
+  $('#drop-'+s.key).classList.add('hidden');
+  box.innerHTML=`${previewHtml(file,url)}<div class="small"><span class="spinner"></span> Reading with local OCR${S.ocr?.ai?.enabled?' + AI':''}…</div>`;
+  const fd=new FormData();fd.append('file',file);
+  try{const r=await api('/ocr/scan',{method:'POST',body:fd});NEW.scans[s.key]=r;const dt=r.fields.doc_type?.value;
+    const typeSel=$('#type-'+s.key);if(s.types.includes(dt)&&typeSel.tagName==='SELECT')typeSel.value=dt;
+    const wrong=!s.types.includes(dt);
+    $('#slot-'+s.key).classList.add('done');
+    box.innerHTML=`${previewHtml(file,url)}<div class="row small">${wrong?`<span class="pill warn">Looks like: ${esc(DOC_LABEL[dt]||dt)}</span>`:`<span class="pill match">✓ ${esc(DOC_LABEL[dt])}</span>`}<span class="muted">${esc(r.ocr_engine)}${r.ai_used?' + AI':''} · ${(r.duration_ms/1000).toFixed(1)}s</span></div>${fieldsKv(r.fields,true)}<div class="row"><button class="ghost sm" type="button" onclick="resetSlot('${s.key}')">Replace</button></div>`;
+    applyAutofill(false)}
+  catch(e){delete NEW.files[s.key];box.innerHTML=`<div class="msg err">${esc(e.message)}</div><button class="secondary sm" type="button" onclick="resetSlot('${s.key}')">Try another file</button>`}}
+function resetSlot(k){delete NEW.files[k];delete NEW.scans[k];$('#res-'+k).innerHTML='';$('#drop-'+k).classList.remove('hidden');$('#slot-'+k).classList.remove('done');$('#file-'+k).value=''}
+function applyAutofill(force){const f=$('#newForm');if(!f)return;const pick=(...keys)=>{for(const [slot,field] of keys){const v=NEW.scans[slot]?.fields?.[field]?.value;if(v)return v}return ''};
+  const map={full_name:pick(['pan','name'],['aadhaar','name'],['addr','name']),dob:pick(['pan','dob'],['aadhaar','dob']),pan_number:pick(['pan','pan_number']),aadhaar_last4:pick(['aadhaar','aadhaar_last4']),pincode:pick(['addr','pincode'],['aadhaar','pincode']),address:pick(['addr','address'],['aadhaar','address']),gender:pick(['aadhaar','gender'])};
+  let n=0;for(const [k,v] of Object.entries(map)){const el=f.elements[k];if(!el||!v)continue;if(force||!el.value){el.value=k==='gender'?({M:'M',F:'F',T:'T'}[v]||''):v;el.style.background='#f3f7ff';n++}}
+  const cityM=(map.address||'').split(',').map(x=>x.trim()).filter(Boolean);if(cityM.length>=2){if(!f.elements.city.value)f.elements.city.value=cityM[cityM.length-2];if(!f.elements.state.value)f.elements.state.value=cityM[cityM.length-1]}
+  if(n)$('#autoMsg').innerHTML=`<div class="msg ok">Filled ${n} field${n>1?'s':''} from your documents (highlighted). Please check every value before continuing.</div>`}
+async function newApp(){NEW.files={};NEW.scans={};try{const o=await api('/reference/occupations');OCCUPATIONS.splice(0,OCCUPATIONS.length,...o.map(x=>[x.code,x.description]))}catch{}
+  $('#view').innerHTML=`<div class="panel"><h2>New application</h2><p class="muted small">Step 1 — upload your documents. They are read on this computer and used to pre-fill step 2.</p>
+   <div class="msg warn small">Use synthetic specimens only. Upload a <b>masked</b> Aadhaar (XXXX XXXX 1234); files with a full 12-digit Aadhaar number are refused.</div>
+   <div class="slots">${SLOTS.map(slotHtml).join('')}</div></div>
+   <div class="panel"><div class="between"><div><h2>Your details</h2><p class="muted small">Step 2 — confirm the values exactly as on your documents.</p></div><button type="button" class="secondary sm" onclick="applyAutofill(true)">↻ Re-apply from documents</button></div><div id="autoMsg"></div>
+   <form id="newForm" class="grid2">
+    <div class="full"><label>Full name *</label><input name="full_name" required minlength="2"></div>
+    <div><label>Date of birth *</label><input name="dob" type="date" required></div>
+    <div><label>Gender</label><select name="gender"><option value="">—</option><option value="F">Female</option><option value="M">Male</option><option value="T">Transgender</option></select></div>
+    <div><label>PAN *</label><input name="pan_number" maxlength="10" required pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]" placeholder="ABCPE1234F" style="text-transform:uppercase"></div>
+    <div><label>Aadhaar last 4 digits *</label><input name="aadhaar_last4" maxlength="4" required pattern="[0-9]{4}" inputmode="numeric"></div>
+    <div class="full"><label>Address</label><input name="address"></div>
+    <div><label>City</label><input name="city"></div><div><label>State</label><input name="state"></div>
+    <div><label>PIN code *</label><input name="pincode" maxlength="6" required pattern="[0-9]{6}" inputmode="numeric"></div>
+    <div><label>Mobile</label><input name="mobile" maxlength="10" inputmode="numeric"></div>
+    <div><label>Email</label><input name="email" type="email"></div>
+    <div><label>Occupation</label><select name="occupation_code">${OCCUPATIONS.map(([c,l])=>`<option value="${c}">${l}</option>`).join('')}</select></div>
+    <div><label>Annual income (₹) *</label><input name="annual_income" type="number" min="0" required></div>
+    <div class="full"><label style="display:flex;gap:8px;align-items:flex-start;font-weight:600"><input name="consent" type="checkbox" required style="width:auto;margin-top:2px"> I consent to processing of these synthetic documents for KYC verification and confirm the details are accurate.</label></div>
+    <div class="full row" style="margin-top:8px"><button name="act" value="submit">Create & submit application</button><button name="act" value="draft" class="secondary">Save as draft</button></div>
+   </form><div id="newMsg"></div></div>`;
+  SLOTS.forEach(s=>wireSlot(s,scanSlot));
+  $('#newForm').onsubmit=async e=>{e.preventDefault();const act=e.submitter?.value||'submit';const f=new FormData(e.target),d=Object.fromEntries(f.entries());
+    d.consent=f.has('consent');d.annual_income=Number(d.annual_income);d.pan_number=d.pan_number.toUpperCase();delete d.act;
+    const btns=e.target.querySelectorAll('button');btns.forEach(b=>b.disabled=true);const msg=$('#newMsg');
+    try{if(act==='submit'&&!Object.keys(NEW.files).length)throw Error('Upload at least one document before submitting');
+      msg.innerHTML='<div class="msg"><span class="spinner"></span> Creating application…</div>';
+      const r=await api('/applications',{method:'POST',body:d});
+      for(const s of SLOTS){const file=NEW.files[s.key];if(!file)continue;msg.innerHTML=`<div class="msg"><span class="spinner"></span> Uploading ${esc(s.title)}…</div>`;
+        const fd=new FormData();fd.append('file',file);await api(`/applications/${r.application_id}/documents?declared_doc_type=${$('#type-'+s.key).value}`,{method:'POST',body:fd})}
+      if(act==='submit'){await api(`/applications/${r.application_id}/submit`,{method:'POST'});toast('Application '+r.application_id+' submitted for review')}else toast('Draft saved')
+      go('detail',r.application_id)}
+    catch(x){msg.innerHTML=`<div class="msg err">${esc(x.message)}</div>`;btns.forEach(b=>b.disabled=false)}}}
+async function applicantDetail(id){const a=await api('/applications/'+id);const editable=['DRAFT','RESUBMISSION_REQUESTED'].includes(a.status)&&a.owner===S.user.username;
+  const present=new Set(a.documents.map(d=>d.declared_doc_type));
+  $('#view').innerHTML=`<div class="panel"><div class="between"><div><div class="muted small">${esc(a.id)}</div><h2>${esc(a.full_name)}</h2></div>${pill(a.status)}</div>${stepper(a.status)}
+   ${a.status==='RESUBMISSION_REQUESTED'?`<div class="msg warn"><b>The bank asked for changes.</b> ${esc(a.checker?.comment||'')}<br>Remove the incorrect document, upload a clearer one and submit again.</div>`:''}
+   ${a.status==='APPROVED'?`<div class="msg ok"><b>Your account is approved.</b> Next periodic KYC due ${esc(a.decision?.rekyc_due_date||'—')}.</div>`:''}
+   ${a.status==='REJECTED'?`<div class="msg err"><b>We could not approve this application.</b> ${esc(a.checker?.comment||'')}</div>`:''}
+   <div class="grid2 small" style="margin-top:8px"><div class="kv"><span>PAN</span><b>${esc(a.pan_number)}</b><span>DOB</span><b>${esc(a.dob)}</b><span>Aadhaar</span><b>XXXX XXXX ${esc(a.aadhaar_last4)}</b></div><div class="kv"><span>PIN</span><b>${esc(a.pincode)}</b><span>City</span><b>${esc(a.city||'—')}</b><span>Occupation</span><b>${esc(a.occupation_code)}</b></div></div></div>
+   <div class="panel"><h3>Documents</h3><div class="slots" style="margin-top:12px">${a.documents.map(d=>`<div class="slot done"><div class="between"><span class="t">${esc(DOC_LABEL[d.declared_doc_type]||d.declared_doc_type)}</span>${editable?`<button class="ghost sm" onclick="delDoc('${a.id}','${d.id}')">Remove</button>`:''}</div><div class="thumb txt" id="th-${d.id}">${esc(d.file_name)}</div>${d.extraction?.doc_type?.value&&d.extraction.doc_type.value!==d.declared_doc_type?`<span class="pill warn">Read as ${esc(DOC_LABEL[d.extraction.doc_type.value]||d.extraction.doc_type.value)}</span>`:''}${fieldsKv(d.extraction||{})}<button class="secondary sm" onclick="viewDocModal('${d.id}','${esc(d.file_name)}')">View</button></div>`).join('')}
+    ${editable?SLOTS.filter(s=>!s.types.some(t=>present.has(t))).map(slotHtml).join(''):''}</div>
+    ${editable?`<div class="row" style="margin-top:14px"><button onclick="submitApp('${a.id}')">Submit for review</button><span class="muted small">Documents lock after submission.</span></div>`:''}</div>
+   <div class="panel"><h3>Activity</h3><div id="tl" class="small muted">Loading…</div></div>`;
+  a.documents.forEach(d=>thumb(d));
+  if(editable)SLOTS.filter(s=>!s.types.some(t=>present.has(t))).forEach(s=>wireSlot(s,async(s,file)=>{const box=$('#res-'+s.key);$('#drop-'+s.key).classList.add('hidden');box.innerHTML='<span class="spinner"></span> Reading document…';const fd=new FormData();fd.append('file',file);
+    try{const r=await api(`/applications/${a.id}/documents?declared_doc_type=${$('#type-'+s.key).value}`,{method:'POST',body:fd});toast('Uploaded · read as '+(DOC_LABEL[r.detected_type]||r.detected_type));applicantDetail(a.id)}catch(e){box.innerHTML=`<div class="msg err">${esc(e.message)}</div>`;$('#drop-'+s.key).classList.remove('hidden')}}));
+  const tl=await api(`/applications/${a.id}/timeline`);$('#tl').innerHTML=tl.length?tl.map(t=>`<div>${esc(t.at.slice(0,16).replace('T',' '))} · <b>${esc(t.action.replace(/_/g,' ').toLowerCase())}</b> by ${esc(t.actor)}</div>`).join(''):'No activity yet.'}
+async function thumb(d){const el=$('#th-'+d.id);if(!el||!(d.media_type||'').startsWith('image/'))return;try{const u=await blobUrl(d.id);el.outerHTML=`<img class="thumb" src="${u}" alt="">`}catch{}}
+async function delDoc(aid,did){if(!await ask({title:'Remove this document?',ok:'Remove',cls:'danger'}))return;try{await api(`/applications/${aid}/documents/${did}`,{method:'DELETE'});applicantDetail(aid)}catch(e){toast(e.message,1)}}
+async function submitApp(id){try{await api(`/applications/${id}/submit`,{method:'POST'});toast('Submitted for KYC review');applicantDetail(id)}catch(e){toast(e.message,1)}}
+async function viewDocModal(id,name){modal(`<div class="between"><h3>${esc(name)}</h3><button class="secondary sm" onclick="closeModal()">Close</button></div><div class="viewer" id="mv" style="margin-top:10px"><span class="spinner" style="margin:30px"></span></div>`);renderDoc(id,'#mv')}
+async function renderDoc(id,sel,mode='doc'){const box=$(sel);try{
+  if(mode==='text'){const o=await api('/documents/'+id+'/ocr');box.innerHTML=`<pre>${esc(o.text||'(no OCR text stored)')}</pre>`;return}
+  const o=await api('/documents/'+id+'/ocr');const mt=o.media_type||'text/plain';
+  if(mt.startsWith('image/')){box.innerHTML=`<img src="${await blobUrl(id)}" alt="document">`}
+  else if(mt==='application/pdf'){box.innerHTML=`<iframe src="${await blobUrl(id)}"></iframe>`}
+  else box.innerHTML=`<pre>${esc(o.text)}</pre>`}catch(e){box.innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}
+
+/* ================= KYC OFFICER ================= */
+function appTable(rows,empty){return rows.length?`<div class="tablewrap"><table><thead><tr><th>Application</th><th>Applicant</th><th>Status</th><th>Rules</th><th>Reasons</th><th>Submitted</th></tr></thead><tbody>${rows.map(a=>`<tr class="click" onclick="go('case','${esc(a.id)}')"><td><b>${esc(a.id)}</b></td><td>${esc(a.full_name)}<div class="muted small">${esc(a.city||'')}</div></td><td>${pill(a.status)}</td><td>${a.decision?pill(a.decision.decision,a.decision.decision):'<span class="muted small">not run</span>'}</td><td class="small" style="max-width:280px;white-space:normal">${esc((a.decision?.reason_codes||'').replace(/\|/g,', '))}</td><td class="muted small">${esc((a.submitted_at||a.created_at||'').slice(0,10))}</td></tr>`).join('')}</tbody></table></div>`:`<div class="msg">${empty}</div>`}
+async function reviewQueue(){const rows=await api('/review/queue');$('#cnt-queue').textContent=rows.length||'';
+  const f=S.qf||'ALL';const vis=rows.filter(a=>f==='ALL'||(f==='NEW'&&!a.decision)||(a.decision&&a.decision.decision===f));
+  const c=k=>rows.filter(a=>k==='NEW'?!a.decision:a.decision?.decision===k).length;
+  $('#view').innerHTML=`<div class="panel"><div class="between"><div><h2>KYC review queue</h2><p class="muted small">Open a case to compare documents with declared data, correct OCR fields, run the rules and recommend.</p></div></div>
+   <div class="stats">${[['ALL','All open',rows.length],['NEW','Not evaluated',c('NEW')],['REJECT','Rules: reject',c('REJECT')],['REVIEW','Rules: review',c('REVIEW')],['APPROVE','Rules: approve',c('APPROVE')]].map(([k,l,n])=>`<div class="stat" style="cursor:pointer;${f===k?'border-color:#8eacf0;background:#f6f9ff':''}" onclick="S.qf='${k}';reviewQueue()"><b>${n}</b><span>${l}</span></div>`).join('')}</div>
+   ${appTable(vis,'Nothing in this view.')}</div>`}
+async function allApps(){const st=S.af||'';const rows=await api('/applications'+(st?'?status='+st:''));
+  $('#view').innerHTML=`<div class="panel"><div class="between"><h2>All applications</h2><select style="width:auto" onchange="S.af=this.value;allApps()"><option value="">All statuses</option>${Object.keys(STATUS_LABEL).map(s=>`<option ${s===st?'selected':''} value="${s}">${STATUS_LABEL[s]}</option>`).join('')}</select></div><div style="margin-top:12px">${appTable(rows,'No applications.')}</div></div>`}
+function confBar(c){if(c===undefined||c===null)return '';const p=Math.round(c*100);return `<span class="conf"><i class="${c<0.6?'bad':c<0.8?'low':''}" style="width:${p}%"></i></span><span class="small ${c<0.8?'note':'muted'}">${c.toFixed(2)}</span>`}
+function normName(s){return (s||'').toUpperCase().replace(/[.\-]/g,' ').replace(/[^A-Z ]/g,'').split(/\s+/).filter(t=>t&&!['MR','MRS','MS','MISS','DR','SHRI','SMT','KUMARI'].includes(t)).sort().join(' ')}
+function compareTable(a){const byType={};a.documents.forEach(d=>{const t=d.extraction?.doc_type?.value||d.declared_doc_type;if(!byType[t])byType[t]=d});
+  const addr=byType.ELECTRICITY_BILL||byType.BANK_STATEMENT||byType.DRIVING_LICENCE;
+  const cols=[['PAN card',byType.PAN_CARD],['Aadhaar',byType.AADHAAR_CARD],['Address proof',addr]];
+  const rows=[['Name','full_name','name',normName],['Date of birth','dob','dob'],['PAN','pan_number','pan_number',x=>(x||'').toUpperCase()],['Aadhaar last 4','aadhaar_last4','aadhaar_last4'],['PIN code','pincode','pincode']];
+  return `<div class="tablewrap"><table><thead><tr><th>Field</th><th>Declared</th>${cols.map(c=>`<th>${c[0]}${c[1]?'':' <span class="pill diff">missing</span>'}</th>`).join('')}</tr></thead><tbody>${rows.map(([l,ak,fk,n=(x=>x)])=>`<tr><td><b>${l}</b></td><td>${esc(a[ak])}</td>${cols.map(([,d])=>{const f=d?.extraction?.[fk];if(!f||!f.value)return '<td class="muted">—</td>';const ok=n(f.value)===n(a[ak]);return `<td><span class="pill ${ok?'match':'diff'}">${ok?'✓':'≠'}</span> ${esc(f.value)}${f.confidence<0.8?' <span class="note">low conf</span>':''}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`}
+function reasonsHtml(dec){if(!dec)return '<p class="muted small">Rules have not been run yet. They run automatically when the applicant submits, and the KYC officer can re-run them after corrections.</p>';const codes=(dec.reason_codes||'').split('|').filter(Boolean);
+  return `<div class="row" style="margin:6px 0 10px">${pill(dec.decision,'Rules: '+dec.decision)} ${dec.risk_category?pill(dec.risk_category,'Risk '+dec.risk_category):''} <span class="small muted">Name score ${esc(dec.name_match_score||'—')} · Re-KYC ${esc(dec.rekyc_due_date||'—')}</span></div>
+   ${codes.length?codes.map(c=>`<div class="reason ${REASONS[c]?.[0]||''}"><b>${esc(c)}</b> — ${esc(REASONS[c]?.[1]||'')}${dec.rule_details?.[c]?`<div class="small muted" style="margin-top:3px">${esc(JSON.stringify(dec.rule_details[c]))}</div>`:''}</div>`).join(''):'<div class="msg ok small">No rule was triggered.</div>'}`}
+async function openCase(id){S.caseId=id;const a=await api('/applications/'+id);const kyc=has('KYC_OFFICER'),comp=has('COMPLIANCE_OFFICER');
+  const canEval=kyc&&['SUBMITTED','IN_REVIEW'].includes(a.status);const canRec=kyc&&a.status==='IN_REVIEW'&&a.decision;
+  const canCheck=comp&&a.status==='PENDING_CHECKER';const ownRec=a.recommendation?.officer===S.user.username;
+  const cur=S.caseDoc[id]&&a.documents.find(d=>d.id===S.caseDoc[id])?S.caseDoc[id]:a.documents[0]?.id;S.caseDoc[id]=cur;
+  $('#view').innerHTML=`<div class="panel"><div class="between"><div><button class="ghost sm" onclick="go('${has('KYC_OFFICER')&&a.status!=='PENDING_CHECKER'?'queue':has('COMPLIANCE_OFFICER')?'checker':'all'}')">← Back</button><div class="muted small">${esc(a.id)} · applicant account ${esc(a.owner)}</div><h2>${esc(a.full_name)}</h2></div><div class="row">${pill(a.status)}${canEval?`<button onclick="runRules('${a.id}')">▶ Run rules engine</button>`:''}</div></div>${stepper(a.status)}
+    <div class="stats"><div class="stat"><b>${esc(a.decision?.decision||'—')}</b><span>Rules outcome</span></div><div class="stat"><b>${esc(a.decision?.risk_category||'—')}</b><span>Risk category</span></div><div class="stat"><b>${esc(a.decision?.name_match_score||'—')}</b><span>Name match</span></div><div class="stat"><b>₹${Number(a.annual_income||0).toLocaleString('en-IN')}</b><span>${esc(a.occupation_code)}</span></div></div></div>
+   <div class="panel"><h3>Declared data vs documents</h3><p class="muted small">Values read by OCR/AI from each document, compared with what the applicant declared.</p>${compareTable(a)}</div>
+   <div class="case">
+    <div class="panel"><div class="between"><h3>Documents</h3><div class="row"><button class="secondary sm" id="vmDoc" onclick="docMode('doc')">Original</button><button class="secondary sm" id="vmTxt" onclick="docMode('text')">OCR text</button></div></div>
+      <div class="doctabs" style="margin-top:10px">${a.documents.map(d=>`<button class="${d.id===cur?'active':''}" onclick="S.caseDoc['${a.id}']='${d.id}';openCase('${a.id}')">${esc(DOC_LABEL[d.declared_doc_type]||d.declared_doc_type)}</button>`).join('')||'<span class="muted small">No documents uploaded.</span>'}</div>
+      ${cur?`<div class="viewer" id="viewer"><span class="spinner" style="margin:30px"></span></div>`:''}</div>
+    <div class="panel">${cur?docFieldsPanel(a,a.documents.find(d=>d.id===cur),kyc&&['SUBMITTED','IN_REVIEW'].includes(a.status)):''}</div>
+   </div>
+   <div class="case">
+    <div class="panel"><h3>Rules engine result</h3>${reasonsHtml(a.decision)}</div>
+    <div class="panel stack">
+     ${a.recommendation?`<div><h3>KYC officer recommendation</h3><div class="reason"><div class="row">${pill(a.recommendation.recommendation==='APPROVE'?'APPROVE':a.recommendation.recommendation==='REJECT'?'REJECT':'REVIEW',a.recommendation.recommendation)} <span class="small muted">by ${esc(a.recommendation.officer)} · ${esc(a.recommendation.at.slice(0,16).replace('T',' '))}</span></div><div style="margin-top:6px">${esc(a.recommendation.comment)}</div></div></div>`:''}
+     ${a.checker?`<div><h3>Compliance decision</h3><div class="reason"><div class="row">${pill(a.checker.decision==='APPROVE'?'APPROVED':a.checker.decision==='REJECT'?'REJECTED':'RESUBMISSION_REQUESTED',a.checker.decision)} <span class="small muted">by ${esc(a.checker.checker)}</span></div><div style="margin-top:6px">${esc(a.checker.comment)}</div></div></div>`:''}
+     ${canRec?`<div><h3>Your recommendation (maker)</h3><p class="muted small">Goes to an independent compliance officer for the final decision.</p><textarea id="recC" rows="3" placeholder="Rationale (required): what you verified, corrections made, residual risk"></textarea><div class="row" style="margin-top:8px"><button class="ok" onclick="recommend('${a.id}','APPROVE')">Recommend approve</button><button class="danger" onclick="recommend('${a.id}','REJECT')">Recommend reject</button><button class="warn" onclick="recommend('${a.id}','REQUEST_RESUBMISSION')">Request resubmission</button></div></div>`:''}
+     ${kyc&&a.status==='SUBMITTED'?'<div class="msg small">Run the rules engine to start the review.</div>':''}
+     ${canCheck?(ownRec?`<div class="msg warn">You made the maker recommendation on this case. A different compliance officer must decide (four-eyes principle).</div>`:`<div><h3>Final decision (checker)</h3><textarea id="chkC" rows="3" placeholder="Decision rationale (required)"></textarea><div class="row" style="margin-top:8px"><button class="ok" onclick="checkCase('${a.id}','APPROVE')">Approve account</button><button class="danger" onclick="checkCase('${a.id}','REJECT')">Reject</button><button class="warn" onclick="checkCase('${a.id}','REQUEST_RESUBMISSION')">Send back to applicant</button></div></div>`):''}
+     ${!a.recommendation&&!canRec&&!canCheck&&!(kyc&&a.status==='SUBMITTED')?'<p class="muted small">No action available for your role at this stage.</p>':''}
+    </div></div>
+   <div class="panel"><h3>Case timeline</h3><div id="tl" class="small">Loading…</div></div>`;
+  if(cur)renderDoc(cur,'#viewer',S.docMode||'doc');
+  const tl=await api(`/applications/${a.id}/timeline`);$('#tl').innerHTML=`<table><tbody>${tl.map(t=>`<tr><td class="muted">${esc(t.at.slice(0,19).replace('T',' '))}</td><td><b>${esc(t.action)}</b></td><td>${esc(t.actor)}</td><td class="small muted" style="white-space:normal;max-width:420px">${esc(t.detail)}</td></tr>`).join('')}</tbody></table>`}
+function docMode(m){S.docMode=m;const id=S.caseDoc[S.caseId];if(id)renderDoc(id,'#viewer',m)}
+function docFieldsPanel(a,d,canEdit){const ex=d.extraction||{},m=d.meta||{};const order=['doc_type','name','dob','gender','pan_number','aadhaar_last4','address','pincode','document_date','valid_until'];
+  const keys=[...order.filter(k=>ex[k]),...Object.keys(ex).filter(k=>!order.includes(k))];
+  return `<div class="between"><div><h3>Extracted fields</h3><div class="small muted">${esc(d.file_name)} · ${esc(m.ocr_engine||'—')}${m.ocr_confidence!==undefined?' · OCR conf '+m.ocr_confidence:''}${m.ai?.used?' · AI '+esc(m.ai.model):m.ai?' · AI not used':''}${m.duration_ms?' · '+(m.duration_ms/1000).toFixed(1)+'s':''}</div></div>${canEdit?`<button class="secondary sm" onclick="reextract('${a.id}','${d.id}')">↻ Re-run OCR + AI</button>`:''}</div>
+   ${m.suspicious_content?.length?`<div class="msg err small"><b>Suspicious content:</b> this document contains instructions aimed at automated systems (“${esc(m.suspicious_content[0])}”). It was ignored and the document is flagged for manual review.</div>`:''}
+   ${m.note?`<div class="msg small">${esc(m.note)}</div>`:''}
+   <table style="margin-top:8px"><thead><tr><th>Field</th><th>Value</th><th>Confidence</th>${canEdit?'<th></th>':''}</tr></thead><tbody>${keys.map(k=>{const v=ex[k];return `<tr><td><b>${FIELD_LABEL[k]||k}</b>${v.source?`<div><span class="src">${esc(v.source)}</span></div>`:''}</td><td style="white-space:normal">${esc(k==='doc_type'?(DOC_LABEL[v.value]||v.value):v.value)}${k==='doc_type'&&v.value!==d.declared_doc_type?` <span class="pill warn">declared ${esc(d.declared_doc_type)}</span>`:''}${v.note?`<div class="note">${esc(v.note)}</div>`:''}${v.ai_value?`<div class="note">AI read: ${esc(v.ai_value)}</div>`:''}</td><td style="white-space:nowrap">${confBar(v.confidence)}</td>${canEdit?`<td><button class="ghost sm" onclick="correct('${a.id}','${d.id}','${k}')">Edit</button></td>`:''}</tr>`}).join('')}</tbody></table>
+   ${canEdit?`<button class="ghost sm" style="margin-top:6px" onclick="correct('${a.id}','${d.id}','')">+ Add missing field</button>`:''}`}
+async function correct(aid,did,field){const a=await api('/applications/'+aid);const d=a.documents.find(x=>x.id===did);
+  const v=await ask({title:field?'Correct '+(FIELD_LABEL[field]||field):'Add a field',text:'Officer corrections are stored with confidence 1.0, keep the original value in the audit log and survive re-extraction.',fields:[...(field?[]:[{name:'field',label:'Field key (e.g. name, dob, pincode, doc_type)'}]),{name:'value',label:'Correct value'+(['dob','document_date','valid_until'].includes(field)?' (YYYY-MM-DD)':''),value:field?d.extraction?.[field]?.value:''},{name:'reason',label:'Reason (required)',type:'textarea',min:3}],ok:'Save correction'});
+  if(!v)return;try{await api(`/applications/${aid}/corrections`,{method:'POST',body:{doc_id:did,field_name:field||v.field.trim(),value:v.value.trim(),reason:v.reason}});toast('Correction saved. Re-run the rules to apply it.');openCase(aid)}catch(e){toast(e.message,1)}}
+async function reextract(aid,did){toast('Re-reading document locally…');try{await api(`/documents/${did}/reextract`,{method:'POST'});toast('Extraction refreshed');openCase(aid)}catch(e){toast(e.message,1)}}
+async function runRules(id){try{const r=await api(`/applications/${id}/evaluate`,{method:'POST'});toast('Rules: '+r.decision+(r.reason_codes?' · '+r.reason_codes.replace(/\|/g,', '):''));openCase(id)}catch(e){toast(e.message,1)}}
+async function recommend(id,rec){const c=$('#recC').value.trim();if(c.length<3){toast('Please write a rationale first',1);$('#recC').focus();return}
+  try{await api(`/applications/${id}/recommendation`,{method:'POST',body:{recommendation:rec,comment:c}});toast('Recommendation sent to compliance');go('queue')}catch(e){toast(e.message,1)}}
+
+/* ================= COMPLIANCE OFFICER ================= */
+async function checkerQueue(){const rows=await api('/checker/queue');$('#cnt-checker').textContent=rows.length||'';
+  $('#view').innerHTML=`<div class="panel"><h2>Approval queue</h2><p class="muted small">Cases recommended by a KYC officer. You can only decide cases you did not recommend yourself.</p>
+   ${rows.length?`<div class="tablewrap"><table><thead><tr><th>Application</th><th>Applicant</th><th>Maker</th><th>Recommendation</th><th>Rationale</th></tr></thead><tbody>${rows.map(a=>`<tr class="click" onclick="go('case','${esc(a.id)}')"><td><b>${esc(a.id)}</b></td><td>${esc(a.full_name)}</td><td>${esc(a.recommendation?.officer)}${a.recommendation?.officer===S.user.username?' <span class="pill warn">you</span>':''}</td><td>${pill(a.recommendation?.recommendation==='APPROVE'?'APPROVE':a.recommendation?.recommendation==='REJECT'?'REJECT':'REVIEW',a.recommendation?.recommendation)}</td><td class="small" style="white-space:normal;max-width:360px">${esc(a.recommendation?.comment)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="msg">No cases awaiting a compliance decision.</div>'}</div>`}
+async function checkCase(id,decision){const c=$('#chkC').value.trim();if(c.length<3){toast('Please write a rationale first',1);$('#chkC').focus();return}
+  try{const r=await api(`/applications/${id}/checker-decision`,{method:'POST',body:{decision,comment:c}});toast('Case '+id+' → '+(STATUS_LABEL[r.status]||r.status));go('checker')}catch(e){toast(e.message,1)}}
+async function dashboard(){const d=await api('/dashboard');const st=d.applications_by_status,ev=d.evaluations_by_decision;const total=Object.values(st).reduce((a,b)=>a+b,0)||1;
+  const bar=(obj)=>Object.entries(obj).map(([k,v])=>`<div style="margin:8px 0"><div class="between small"><span>${pill(k)}</span><b>${v}</b></div><div style="height:8px;background:#eef1f6;border-radius:9px;margin-top:4px"><div style="height:100%;width:${Math.max(2,v/Math.max(...Object.values(obj))*100)}%;background:var(--blue);border-radius:9px"></div></div></div>`).join('');
+  $('#view').innerHTML=`<div class="panel"><h2>Operations dashboard</h2><div class="stats">${[['Total applications',total],['Awaiting KYC',(st.SUBMITTED||0)+(st.IN_REVIEW||0)],['Awaiting compliance',st.PENDING_CHECKER||0],['Approved',st.APPROVED||0],['Rejected',st.REJECTED||0]].map(([l,v])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('')}</div></div>
+   <div class="case"><div class="panel"><h3>Applications by status</h3>${bar(st)}</div><div class="panel"><h3>Rules outcomes</h3>${Object.keys(ev).length?bar(ev):'<p class="muted small">No evaluations yet.</p>'}<h3 style="margin-top:18px">Document AI</h3><div class="kv small" style="margin-top:6px"><span>OCR engine</span><b>${esc(S.ocr?.ocr_engine||'none')}</b><span>Local LLM</span><b>${S.ocr?.ai?.enabled?esc(S.ocr.ai.model):'off — '+esc(S.ocr?.ai?.reason||'')}</b><span>Vision model</span><b>${esc(S.ocr?.ai?.vision_model||'—')}</b></div></div></div>`}
+async function auditLog(){const rows=await api('/audit?limit=300');
+  $('#view').innerHTML=`<div class="panel"><div class="between"><div><h2>Audit log</h2><p class="muted small">Append-only record of every action, correction and decision.</p></div><button onclick="dlAudit()">Export CSV</button></div><input id="aq" placeholder="Filter by actor, action or ID…" style="margin:10px 0" oninput="filterAudit()"><div class="tablewrap"><table id="at"><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Detail</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="muted small">${esc(r.at.slice(0,19).replace('T',' '))}</td><td>${esc(r.actor)}</td><td><b>${esc(r.action)}</b></td><td>${esc(r.entity)} ${esc(r.entity_id)}</td><td class="small muted" style="white-space:normal;max-width:420px">${esc(r.detail)}</td></tr>`).join('')}</tbody></table></div></div>`}
+function filterAudit(){const q=$('#aq').value.toLowerCase();document.querySelectorAll('#at tbody tr').forEach(tr=>tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none')}
+async function dlAudit(){const r=await fetch('/api/v1/audit/export.csv',{headers:{Authorization:'Bearer '+S.token}});const a=document.createElement('a');a.href=URL.createObjectURL(await r.blob());a.download='onboardiq-audit.csv';a.click()}
+async function config(){const [cfg,ref]=await Promise.all([api('/admin/rules-config'),api('/admin/reference-data')]);
+  $('#view').innerHTML=`<div class="panel"><h2>Rules & reference data</h2><div class="stats"><div class="stat"><b>${ref.sanctions_count}</b><span>Sanctions entries</span></div><div class="stat"><b>${ref.pep_count}</b><span>PEP entries</span></div><div class="stat"><b>${ref.existing_customers_count}</b><span>Existing customers</span></div><div class="stat"><b>${ref.occupations.length}</b><span>Occupation codes</span></div></div>
+   <h3>Rule catalogue</h3><div style="margin:8px 0 16px">${Object.entries(REASONS).map(([k,[t,d]])=>`<div class="reason ${t}"><b>${k}</b> ${pill(t==='hard'?'REJECT':'REVIEW',t==='hard'?'reject':'review')} — ${esc(d)}</div>`).join('')}</div>
+   <h3>Active configuration</h3><div class="code">${esc(JSON.stringify(cfg,null,2))}</div>
+   <h3 style="margin-top:14px">Occupation risk</h3><table><thead><tr><th>Code</th><th>Description</th><th>Risk</th></tr></thead><tbody>${ref.occupations.map(x=>`<tr><td>${esc(x.occupation_code)}</td><td>${esc(x.description)}</td><td>${pill(x.risk_level)}</td></tr>`).join('')}</tbody></table></div>`}
+
+try{const s=JSON.parse(sessionStorage.getItem('oiq')||'null');if(s){S.token=s.t;S.user=s.u;showApp()}}catch{}
+fetch('/api/v1/health').then(r=>r.json()).then(h=>{if(!S.token)$('#aiChip').innerHTML=`<span class="dot ${h.ocr_engine?'on':''}"></span>OCR: ${h.ocr_engine||'not installed'}`}).catch(()=>{});
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+python-multipart>=0.0.9
+httpx>=0.27            # used by FastAPI TestClient in the test suite
+# --- local document AI (OCR) ---
+Pillow>=10
+pymupdf>=1.24          # PDF text layer + rendering scanned PDF pages
+rapidocr>=3.0,<4       # deep-learning OCR (PP-OCR models on ONNX Runtime), pip-only, no system install
+onnxruntime>=1.18
+pytesseract>=0.3.10    # optional: used only if the Tesseract binary is installed (OCR_ENGINE=tesseract)
